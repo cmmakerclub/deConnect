@@ -17,7 +17,32 @@
   },
   "homepage": "https://github.com/cmmakerclub/deConnect",
   "dependencies": {
+    "bcrypt": "^0.8.0",
+    "bluebird": "^2.3.5",
+    "body-parser": "^1.9.0",
+    "bookshelf": "^0.7.7",
+    "bootstrap": "^3.2.0",
+    "connect": "^3.2.0",
+    "connect-flash": "^0.1.1",
+    "connect-mysql": "^2.1.1",
+    "cookie": "^0.1.2",
+    "cookie-parser": "^1.3.3",
+    "cookie-signature": "^1.0.5",
     "express": "^4.9.7",
-    "socket.io": "^1.1.0"
+    "express-handlebars": "^1.1.0",
+    "express-session": "^1.8.2",
+    "hbs": "^2.7.0",
+    "knex": "^0.7.3",
+    "lodash": "^2.4.1",
+    "mysql": "^2.5.2",
+    "passport": "^0.2.1",
+    "passport-local": "^1.0.0",
+    "passport.socketio": "^3.4.1",
+    "socket.io": "^1.1.0",
+    "underscore": "^1.7.0",
+    "when": "^3.5.0"
+  },
+  "devDependencies": {
+    "handlebars-helpers": "^0.5.8"
   }
 }

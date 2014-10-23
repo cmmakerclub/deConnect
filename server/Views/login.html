@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Login</title>
+    <style>
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+
+      <form class="form-signin" role="form" method="post">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <input type="text" name="username" class="form-control" placeholder="Email address" required autofocus>
+        <input name="password" type="password" class="form-control" placeholder="Password" required>
+        <label class="checkbox">
+          <input type="checkbox" value="remember-me"> Remember me
+        </label>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+
+    </div> <!-- /container -->
+  
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+      var socket = io();
+      var socketsId = [];
+      // $('form').submit(function(){
+
+
+        // socket.emit('raspberry pi ' + sessionid, $('#m').val());
+      //   $('#m').val('');
+      //   return false;
+      // });
+      socket.on('foo', function(msg) {
+        console.log(msg);
+      });
+
+      socket.on('all connection', function(msg){
+        console.log(msg);
+        socketsId = msg
+        $('#messages form').remove();
+
+        for (var i = 0; i < msg.length; i++) {
+        $('#messages').append($('<form action="" class="open"><p>' + socketsId[i] + '</p><input id="' + socketsId[i] + '" autocomplete="off" /><button>Send</button></form>'));
+        };
+      });
+    </script>
+  </body>
+</html>

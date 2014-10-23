@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Register</title>
+      <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 40px;
+        padding-bottom: 40px;
+        background-color: #eee;
+      }
+
+      .form-signin {
+        max-width: 330px;
+        padding: 15px;
+        margin: 0 auto;
+      }
+      .form-signin .form-signin-heading,
+      .form-signin .checkbox {
+        margin-bottom: 10px;
+      }
+      .form-signin .checkbox {
+        font-weight: normal;
+      }
+      .form-signin .form-control {
+        position: relative;
+        height: auto;
+        -webkit-box-sizing: border-box;
+           -moz-box-sizing: border-box;
+                box-sizing: border-box;
+        padding: 10px;
+        font-size: 16px;
+      }
+      .form-signin .form-control:focus {
+        z-index: 2;
+      }
+      .form-signin input[type="email"] {
+        margin-bottom: -1px;
+        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+      .form-signin input[type="password"] {
+        margin-bottom: 10px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+      }
+      .on {
+        color: green;
+      }
+      .off {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Serial number</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#table-list pi}} 
+              <td>
+                {{attributes.serial_number}}
+              </td>
+              <td id="{{attributes.serial_number}}">
+                <div class="off">Offline</div>
+              </td>
+              <td>
+                <button class="action" id="button-{{attributes.serial_number}}" pi="{{attributes.serial_number}}" type="button" class="btn btn-default">Eat food</button>
+              </td>
+            {{/table-list}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script>
+
+      var socket = io();
+      var socketsId = [];
+
+      $('.action').click(function() {
+        // console.log()
+        var action = {
+          serial_number : $(this).attr('pi'),
+          type : 'play now',
+          data : 1,
+          date : new Date()
+        }
+        socket.emit('action', action);
+      });
+
+      // $('form').submit(function(){
+
+
+        // socket.emit('raspberry pi ' + sessionid, $('#m').val());
+      //   $('#m').val('');
+      //   return false;
+      // });
+      socket.on('foo', function(msg) {
+        console.log(msg);
+      });
+      
+      socket.on('pi status online', function(data) {
+        console.log(data)
+        var i;
+        for (i = 0; i < data.length; i++) {
+          $("#"+data).text('Online');
+          $("#"+data).removeClass();
+          $("#"+data).addClass('on');
+          $("#"+data).parent().removeClass();
+          $("#"+data).parent().addClass('success');
+        }
+        // io.emit('chat message', data);
+      });
+
+      socket.on('pi status offline', function(data) {
+        console.log(data)
+        var i;
+        for (i = 0; i < data.length; i++) {
+          $("#"+data).text('Offline');
+          $("#"+data).removeClass();
+          $("#"+data).addClass('off');
+          $("#"+data).parent("tr").removeClass();
+          $("#"+data).parent("tr").addClass('danger');
+        }
+        // io.emit('chat message', data);
+      });
+
+      socket.on('all connection', function(msg){
+        console.log(msg);
+        socketsId = msg
+        $('#messages form').remove();
+
+        for (var i = 0; i < msg.length; i++) {
+        $('#messages').append($('<form action="" class="open"><p>' + socketsId[i] + '</p><input id="' + socketsId[i] + '" autocomplete="off" /><button>Send</button></form>'));
+        };
+      });
+    </script>
+  </body>
+</html>
