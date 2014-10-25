@@ -62,6 +62,7 @@
               <th>Serial number</th>
               <th>Status</th>
               <th>Action</th>
+              <th>Doning</th>
             </tr>
           </thead>
           <tbody>
@@ -74,6 +75,9 @@
               </td>
               <td>
                 <button class="action" id="button-{{attributes.serial_number}}" pi="{{attributes.serial_number}}" type="button" class="btn btn-default">Eat food</button>
+              </td>
+              <td>
+                <p id="doing-{{attributes.serial_number}}" pi="{{attributes.serial_number}}" class="">Nothing</p>
               </td>
             {{/table-list}}
           </tbody>
@@ -93,8 +97,8 @@
         // console.log()
         var action = {
           serial_number : $(this).attr('pi'),
-          type : 'play now',
-          data : 1,
+          type : 'play sound',
+          data : "beep",
           date : new Date()
         }
         socket.emit('action', action);
@@ -111,29 +115,53 @@
         console.log(msg);
       });
       
+      socket.on('pi action acting', function(data) {
+        // for (i = 0; i < data.length; i++) {
+          console.log('pi action acting', data)
+          $("#doing-"+data).text('Playing');
+          $("#doing-"+data).removeClass();
+          $("#doing-"+data).addClass('on');
+          // $("#doing-"+data[i]).parent().removeClass();
+          // $("#doing-"+data[i]).parent().addClass('success');
+        // }
+      })
+
+      socket.on('pi action stop', function(data) {
+        // for (i = 0; i < data.length; i++) {
+          $("#doing-"+data).text('Nothing');
+          $("#doing-"+data).removeClass();
+          $("#doing-"+data).addClass('on');
+          // $("#doing-"+data[i]).parent().removeClass();
+          // $("#doing-"+data[i]).parent().addClass('success');
+        // }
+      })
+
       socket.on('pi status online', function(data) {
-        console.log(data)
+        console.log("pi status online " + data)
         var i;
-        for (i = 0; i < data.length; i++) {
+        // for (i = 0; i < data.length; i++) {
           $("#"+data).text('Online');
           $("#"+data).removeClass();
           $("#"+data).addClass('on');
           $("#"+data).parent().removeClass();
           $("#"+data).parent().addClass('success');
-        }
+        // }
         // io.emit('chat message', data);
       });
 
       socket.on('pi status offline', function(data) {
         console.log(data)
         var i;
-        for (i = 0; i < data.length; i++) {
+        // for (i = 0; i < data.length; i++) {
           $("#"+data).text('Offline');
           $("#"+data).removeClass();
           $("#"+data).addClass('off');
           $("#"+data).parent("tr").removeClass();
           $("#"+data).parent("tr").addClass('danger');
-        }
+
+          $("#doing-"+data).text('Nothing');
+          $("#doing-"+data).removeClass();
+        // }
         // io.emit('chat message', data);
       });
 

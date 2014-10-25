@@ -151,6 +151,24 @@ io.use(passportSocketIo.authorize({
   fail:        onAuthorizeFail,     // *optional* callback on fail/error - read more below
 }));
 
+// route middleware to make sure a user is logged in
+function isLoggedIn(req, res, next) {
+
+  // if user is authenticated in the session, carry on 
+  if (req.isAuthenticated())
+    return next();
+
+  // if they aren't redirect them to the home page
+  res.redirect('/');
+}
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) { return next(); }
+  res.redirect('/login');
+}
+
+var clients = [];
+
 function onAuthorizeSuccess(data, accept){
   console.log('successful connection to socket.io');
   console.log('data query ' + data.query);
@@ -296,24 +314,6 @@ app.post('/raspberry', isLoggedIn, function(req, res) {
     });
 })
 
-// route middleware to make sure a user is logged in
-function isLoggedIn(req, res, next) {
-
-  // if user is authenticated in the session, carry on 
-  if (req.isAuthenticated())
-    return next();
-
-  // if they aren't redirect them to the home page
-  res.redirect('/');
-}
-
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.redirect('/login');
-}
-
-var clients = [];
-
 io.on('connection', function(socket) {
 
   // console.log(socket.handshake.query);
@@ -376,56 +376,86 @@ io.on('connection', function(socket) {
     // console.log(data);
 
     new Pi()
-      .where({user_id: user_id, serial_number: data.serial_number})
-      .fetch()
-      .then(function(model) {
-          // console.log('model');
-          // console.log(model.attributes);
-          // console.log('model ' + model.length);
-          var pi = model.attributes;
+    .where({user_id: user_id, serial_number: data.serial_number})
+    .fetch()
+    .then(function(model) {
 
-          if (model !== null) {
+      var pi = model.attributes;
 
-            var piClient = _.filter(clients, function (client) {
+      if (model !== null) {
 
-              var query = client["handshake"]["query"];
-              // console.log(query);
-              // console.log(pi);
-              // console.log(query.serial_number == pi.serial_number);
-              // console.log(query.from == "raspberry");
-              // console.log(_.indexOf(serial_number_list, query.serial_number));
-              if (query.from == "raspberry" && query.serial_number == pi.serial_number) {
-                return true;
-              } else {
-                return false;
-              }
-            })
-            // console.log(pi);
-            if (piClient.length) {
-              // console.log(piClient);
-              piClient[0].emit('pi action', data);
+        var piClient = _.filter(clients, function (client) {
 
-            }
+          var query = client["handshake"]["query"];
+          // console.log(query);
+          // console.log(pi);
+          // console.log(query.serial_number == pi.serial_number);
+          // console.log(query.from == "raspberry");
+          // console.log(_.indexOf(serial_number_list, query.serial_number));
+          if (query.from == "raspberry" && query.serial_number == pi.serial_number) {
+            return true;
+          } else {
+            return false;
           }
-          // console.log('model ' + (model !== null));
-          // console.log(user_id);
-          // console.log('model ' + piList);
-          // console.log('model ' + piList.length);
+        })
+        // console.log(pi);
+        if (piClient.length) {
+          // console.log(piClient);
+          piClient[0].emit('pi action', data);
 
-        // if (model !== null && model.length > 0) {
-        //   // console.log('piList ' + piList);
-
-
-        //   if (piClient.length > 0) {
-        //     var userPiSerialNumber = _.pluck(_.pluck(_.pluck(piClient, "handshake"), "query"), "serial_number");
-        //     socket.emit("pi status online", userPiSerialNumber);
-        //   }
-          // console.log('piClient length: ' + piClient.length);
-          // console.log('piClient.length ' + piClient.length);
-        // }
-    });
+        }
+      }
+    });
 
   });
+
+  socket.on('pi action acting', function(data) {
+
+    var serial_number = socket.handshake.query.serial_number;
+    new Pi()
+    .where({serial_number: serial_number})
+    .fetch()
+    .then(function(model) {
+
+      if (model !== null) {
+        var pi = model.attributes;
+
+        passportSocketIo.filterSocketsByUser(io, function(user){
+          return user.id === pi.user_id;
+        }).forEach(function(socket){
+
+          socket.emit('pi action acting', serial_number);
+          // console.log(socket);
+
+        });
+      }
+    });
+  
+  })
+
+  socket.on('pi action stop', function(data) {
+
+    var serial_number = socket.handshake.query.serial_number;
+    new Pi()
+    .where({serial_number: serial_number})
+    .fetch()
+    .then(function(model) {
+
+      if (model !== null) {
+        var pi = model.attributes;
+
+        passportSocketIo.filterSocketsByUser(io, function(user){
+          return user.id === pi.user_id;
+        }).forEach(function(socket){
+
+          socket.emit('pi action stop', serial_number);
+          // console.log(socket);
+
+        });
+      }
+    });
+  
+  })
 
   socket.on('disconnect', function(){
 
