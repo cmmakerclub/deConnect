@@ -2,12 +2,21 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var path = require('path');
-var socketClient = require('socket.io-client')('http://localhost:3000', { query: "from=raspberry&serial_number=AAA" });
+var socketClient = require('socket.io-client');
 var request = require('request');
 var Player = require('player');
+var internalIp = require('internal-ip');
 
-var player = new Player('./sound/song/Romeo_and_Cinderella.mp3');
-// var player = new Player('./sound/song/grink.mp3');
+var moment = require('moment');
+var fs = require('fs');
+var path = require('path');
+
+var serial_number = 'BBB'; 
+
+socketClient = socketClient.connect('http://localhost:9000', { path: '/socket.io-client', query: "from=raspberry&serial_number=" + serial_number });
+
+// var player = new Player('./sound/song/Romeo_and_Cinderella.mp3');
+var player = new Player('./sound/song/grink.mp3');
 
 player.on('playing',function(item){
   // console.log('im playing... src:' + item);
@@ -37,7 +46,6 @@ player.on('playend',function(item){
 //   }
 //   // socketClient = require('socket.io-client')('http://localhost:3000', { query: "foo=bar" });
 // });
-
 
 app.get('/', function(req, res){
   res.sendFile('index.html', { root: path.join(__dirname, '/') });
@@ -84,7 +92,7 @@ socketClient.on('pi status', function(data){
   // io.emit('chat message', data);
 });
 
-socketClient.on('pi action', function(data){
+socketClient.on('pi:action', function(data){
   console.log(data);
   player.stop();
   player.play(function(err, player){
@@ -97,3 +105,50 @@ socketClient.on('disconnect', function(){
   console.log('disconnect');
   // socketClient.emit('online user', -1);
 });
+
+setInterval(function() {
+
+  socketClient.emit('pi:receive', "localIp" + "," + internalIp())
+
+
+}, 1000);
+
+  ////////////////////////////
+ /////// read data //////////
+////////////////////////////
+setInterval(function() {
+
+  fs.readdir(__dirname + '/data', function(err, files) {
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i].split(",");
+      var sn = "";
+      var createAt = "";
+      var sensorName = "";
+      var sensorData = "";
+
+      for (var j = 0; j < file.length; j++) {
+        var data = file[j].split("-");
+        if (data[0] == "SN") {
+          sn = data[1];
+        } else if (data[0] == "AT") {
+          createAt = data[1];
+        } else if (data[0] == "SENSOR") {
+          sensorName = data[1];
+        }
+      }
+        filePath = path.join(__dirname, '/data/' + files[i]);
+        sensorData = fs.readFileSync(filePath, {encoding: 'utf-8'});
+
+        if (sensorName && sensorName != '' ) {//&& sn != '' && createAt != '') {
+
+          console.log('send data name' + sensorName + ':' + sensorData);
+          fs.unlinkSync(filePath);
+
+          socketClient.emit('pi:receive', sensorName + "," + sensorData);
+
+        }
+
+    }
+  });
+
+}, 5000);
