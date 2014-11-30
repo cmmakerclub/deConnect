@@ -12,8 +12,10 @@ var fs = require('fs');
 var path = require('path');
 
 var serial_number = 'BBB'; 
+// var domain = "http://localhost:9000/";
+var domain = "https://derconnect.herokuapp.com";
 
-socketClient = socketClient.connect('http://localhost:9000', { path: '/socket.io-client', query: "from=raspberry&serial_number=" + serial_number });
+socketClient = socketClient.connect(domain, { path: '/socket.io-client', query: "from=raspberry&serial_number=" + serial_number });
 
 // var player = new Player('./sound/song/Romeo_and_Cinderella.mp3');
 var player = new Player('./sound/song/grink.mp3');
@@ -108,10 +110,11 @@ socketClient.on('disconnect', function(){
 
 setInterval(function() {
 
+  console.log('emit pi:receive', "localIp" + "," + internalIp());
   socketClient.emit('pi:receive', "localIp" + "," + internalIp())
 
 
-}, 1000);
+}, 5000);
 
   ////////////////////////////
  /////// read data //////////
@@ -141,7 +144,7 @@ setInterval(function() {
 
         if (sensorName && sensorName != '' ) {//&& sn != '' && createAt != '') {
 
-          console.log('send data name' + sensorName + ':' + sensorData);
+          console.log('send data name ' + sensorName + ':' + sensorData);
           fs.unlinkSync(filePath);
 
           socketClient.emit('pi:receive', sensorName + "," + sensorData);
