@@ -11,10 +11,10 @@ var moment = require('moment');
 var fs = require('fs');
 var path = require('path');
 
-var serial_number = fs.readFileSync("/proc/cpuinfo").toString().split("Serial\t\t: ")[1].trim() || "dummy-not-pi";
+// var serial_number = fs.readFileSync("/proc/cpuinfo").toString().split("Serial\t\t: ")[1].trim() || "dummy-not-pi";
 // var domain = "http://localhost:9000/";
 var domain = "https://derconnect.herokuapp.com";
-// var serial_number = 'BBB'; 
+var serial_number = 'BBB'; 
 // var domain = "http://localhost:9000/";
 //var domain = "http://192.168.21.127:9000";
 // var domain = "https://derconnect.herokuapp.com";
