@@ -14,6 +14,10 @@ var path = require('path');
 var serial_number = fs.readFileSync("/proc/cpuinfo").toString().split("Serial\t\t: ")[1].trim() || "dummy-not-pi";
 // var domain = "http://localhost:9000/";
 var domain = "https://derconnect.herokuapp.com";
+// var serial_number = 'BBB'; 
+// var domain = "http://localhost:9000/";
+//var domain = "http://192.168.21.127:9000";
+// var domain = "https://derconnect.herokuapp.com";
 
 socketClient = socketClient.connect(domain, { path: '/socket.io-client', query: "from=raspberry&serial_number=" + serial_number });
 
@@ -110,11 +114,34 @@ socketClient.on('disconnect', function(){
 
 setInterval(function() {
 
-  console.log('emit pi:receive', "localIp" + "," + internalIp());
-  socketClient.emit('pi:receive', "localIp" + "," + internalIp())
+
+  var sendData = 
+  {
+    type: "localIp",
+    uuid: 'uuidBBB',
+    data: internalIp()
+  }
+
+  // console.log('emit pi:receive', "localIp" + "," + internalIp());
+  console.log(sendData)
+  socketClient.emit('pi:receive', sendData)
 
 
 }, 5000);
+
+
+var writeFile = function (argument) {
+
+  var filePath = path.join(__dirname, '/data/') + 'SENSOR-ble' ;
+  fs.writeFile(filePath, parseInt((Math.random() * 100)), function(err) {
+      if(err) {
+          console.log(err);
+      } else {
+          console.log("The file was saved!");
+      }
+  }); 
+}
+
 
   ////////////////////////////
  /////// read data //////////
